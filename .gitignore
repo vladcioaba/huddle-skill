@@ -1,0 +1,12 @@
+# User-specific runtime config — paths, timestamps. Don't ship.
+config.json
+
+# Node
+node_modules/
+npm-debug.log
+.npm/
+
+# Editor scratch
+*.swp
+*~
+.DS_Store

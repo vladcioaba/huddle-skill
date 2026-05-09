@@ -1,0 +1,16 @@
+{
+  "name": "huddle",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "description": "Async clarification agent for Claude Code. Editor-based Q&A popup, sub-agent validates, main thread continues.",
+  "scripts": {
+    "probe": "node lib/probe-editors.js",
+    "status": "node lib/setup.js status",
+    "show": "node lib/setup.js show",
+    "test": "node test/smoke.js"
+  }
+}
