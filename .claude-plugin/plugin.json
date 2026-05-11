@@ -6,6 +6,20 @@
     "name": "Vlad Cioabă",
     "url": "https://github.com/vladcioaba"
   },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/on-session-start.js\"",
+            "timeout": 5,
+            "statusMessage": "Loading huddle state..."
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/orchestrate.js:*)",
