@@ -33,12 +33,41 @@ Run a clarification session by opening the user's configured editor with a Q&A m
    ```
    Output is a JSON bundle on stdout.
 
-4. **Parse the bundle.** Fields:
+4. **Parse the bundle.** Save the orchestrator's JSON output to a file
+   (e.g. `/tmp/huddle-bundle-<ts>.json`) so the runner agent can Read it.
+
+   Fields:
    - `summary`: `all_answered` | `user_stop` | `incomplete` | `max_iterations` | `single_pass`
    - `answers`: array of `{qid, question, answer}` — what the user provided.
    - `pending`: array of `{qid, question}` — anything still unanswered.
-   - `stop`: boolean — user typed `/STOP`.
+   - `stop`: boolean — user typed `/STOP`/`/CANCEL`/`/ABORT`.
    - `iterations`: how many times the editor reopened.
+
+4b. **Run semantic triage via the huddle-runner sub-agent.** Spawn it
+    with the Agent tool so the cheap Haiku model handles classification
+    (clear/ambiguous/deferred/skip/invalidated/aborted), flags cross-
+    question signals, and proposes follow-up text for any ambiguous
+    answers. This keeps main-thread context light.
+
+    ```
+    Agent(
+      subagent_type: "huddle-runner"   // or "huddle:huddle-runner" under plugin
+      description: "Triage huddle bundle",
+      prompt: "Read /tmp/huddle-bundle-<ts>.json and return the JSON triage per your spec."
+    )
+    ```
+
+    Parse the runner's JSON. If `verdict: "needs_followup"`, you can
+    optionally:
+    - Build a fresh `questions.json` from each `per_question[].followup_question`
+      (only for items where it's non-null).
+    - Re-run `orchestrate.js` with that new question set (iteration is
+      tracked inside the orchestrator).
+    - Loop until verdict = `complete` or user aborts.
+
+    If `verdict: "user_aborted"` or `"empty"`, do NOT silently retry —
+    surface to the user, ask whether to redo, proceed with assumptions,
+    or skip.
 
 5. **Surface to user in chat.**
    - For each answered question: show `Q1: <question>\n→ <answer>`.

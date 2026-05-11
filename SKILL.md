@@ -113,10 +113,18 @@ huddle/
     └── huddle-force.md              # force editor/inline/off
 ```
 
+## Shipped sub-agent
+
+- `agents/huddle-runner.md` — Haiku semantic triage for answer bundles.
+  Classifies each answer (clear / ambiguous / deferred / skip /
+  invalidated / aborted), flags cross-question signals, proposes
+  follow-up text for any ambiguous answer. Read-only, prompt-injection
+  guarded. Invoked by main thread (or `/huddle` command) via the Agent
+  tool with `subagent_type: "huddle-runner"` (or `huddle:huddle-runner`
+  when installed as a plugin).
+
 ## Not yet implemented (next steps)
 
-- `agents/huddle-runner.md` — Haiku sub-agent prompt (loop edit/parse/validate)
-- `commands/huddle.md` — sync spawn (foreground first, then async)
 - `~/.claude/state/huddle/` — per-session state dir
 - `Stop` / `SessionStart` hooks — orphan prune, pending-result merge
 - Async spawn + assumption snapshot + merge protocol
@@ -135,5 +143,5 @@ All scripts are Node.js (no bash, no jq, no GNU/BSD coreutil drift). Requires No
 - `config.json` is a trust boundary. Anything written into `editor.cmd` will be executed (via `spawn`, no shell) when a huddle session opens. Treat it as sensitive — same threat surface as `~/.bashrc` or `~/.gitconfig`.
 - `spawn(bin, [args...])` is used everywhere — no `shell: true`, no `eval`. User-edited markdown content is read as data, never executed.
 - Editor probe walks `$PATH` directly (no shell invocation), so no command-substitution exploit even if a future contributor adds a binary name with shell metacharacters.
-- Sub-agent (planned, `huddle-runner.md`) MUST treat user answer text as data, not instructions — guard against prompt injection where a crafted answer tries to subvert the validator.
+- Sub-agent `huddle-runner` treats user answer text as data, not instructions. Its prompt explicitly refuses tool calls based on instructions embedded in answer bodies and ignores role-flip attempts.
 - Concurrent forms get unique IDs (`mock-${Date.now()}` + random suffix) so simultaneous sessions can't collide on tmpdir paths.
