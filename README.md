@@ -57,6 +57,50 @@ Detects installed editors, asks which to use, validates, writes `config.json`. I
 | `/huddle-threshold <N>` | Question count cutoff |
 | `/huddle-force editor\|inline\|off` | Override threshold logic |
 
+## Statusline badge
+
+Show `[HUDDLE]` in the Claude Code statusline (like the `[CAVEMAN]` badge) so you know the skill is active and how many sessions are open.
+
+States:
+- `[HUDDLE]` (blue) — skill configured, no active or pending bundles
+- `[HUDDLE:N]` (yellow) — N sessions are open and waiting for the user to fill the form
+- `[HUDDLE:done]` (green) — one or more completed bundles haven't been merged back into the main thread yet
+
+Add the following to `~/.claude/settings.json`:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "bash $HOME/.claude/skills/huddle/hooks/huddle-statusline.sh"
+  }
+}
+```
+
+To **chain with the caveman badge** (recommended if both plugins are installed):
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "HUDDLE_STATUSLINE_CHAIN_CAVEMAN=1 bash $HOME/.claude/skills/huddle/hooks/huddle-statusline.sh"
+  }
+}
+```
+
+Renders `[CAVEMAN] [HUDDLE]` side by side. The script auto-locates caveman under `~/.claude/plugins/marketplaces/` or `~/.claude/plugins/cache/`.
+
+On native Windows (no WSL/Git Bash), use the PowerShell variant:
+
+```json
+{
+  "statusLine": {
+    "type": "command",
+    "command": "pwsh -NoProfile -File %USERPROFILE%\\.claude\\skills\\huddle\\hooks\\huddle-statusline.ps1"
+  }
+}
+```
+
 ## Auto-trigger logic
 
 Before asking 2+ clarifying questions, main Claude consults:
