@@ -11,6 +11,6 @@ User can still invoke `/huddle` manually to force editor popup.
 
 ## Steps
 
-1. Run `node ~/.claude/skills/huddle/lib/setup.js auto disable`.
+1. Run `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js auto disable`.
 2. Confirm to user: auto-trigger OFF.
 3. Mention `/huddle-enable` to turn back on.

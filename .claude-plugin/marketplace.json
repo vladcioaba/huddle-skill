@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "huddle",
+  "description": "Async clarification skill: opens your editor with a Q&A form when many clarifications are needed.",
+  "owner": {
+    "name": "Vlad Cioabă",
+    "url": "https://github.com/vladcioaba"
+  },
+  "plugins": [
+    {
+      "name": "huddle",
+      "description": "Open your editor with a Q&A form to answer many clarifications at once. Saves the back-and-forth.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}

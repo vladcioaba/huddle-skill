@@ -27,6 +27,6 @@ Two thresholds — either one fires:
 1. Parse args. Detect `chars:N` patterns. Plain integer = question threshold.
 2. Validate each is positive integer.
 3. Run as needed:
-   - `node ~/.claude/skills/huddle/lib/setup.js auto threshold <N>` for questions
-   - `node ~/.claude/skills/huddle/lib/setup.js auto chars <N>` for chars
+   - `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js auto threshold <N>` for questions
+   - `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js auto chars <N>` for chars
 4. Confirm to user: new thresholds applied. Show effective config via `/huddle-show-config`.

@@ -23,5 +23,5 @@ Override the threshold-based routing. Useful for one-off sessions where user wan
 ## Steps
 
 1. Validate arg ∈ {editor, inline, off, none}. If invalid → error, show usage.
-2. Run `node ~/.claude/skills/huddle/lib/setup.js auto force <arg>`.
+2. Run `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js auto force <arg>`.
 3. Confirm to user: force mode set. Mention `/huddle-force off` to clear.

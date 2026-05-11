@@ -26,7 +26,7 @@ Direct override of the huddle editor without running the picker. Use when:
 4. Determine `wait_method`:
    - If command contains `--wait`, `-w`, `--block`, or binary is `vim/nvim/hx/nano/micro/emacs` → `native`.
    - If binary is `notepad++` or no wait flag detected on a GUI editor → `mtime_poll`.
-5. Run `~/.claude/skills/huddle/lib/setup.sh save "<cmd>" "<label>" "<kind>" "<wait_method>"`.
+5. Run `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js save "<cmd>" "<label>" "<kind>" "<wait_method>"`.
 6. Confirm to user: command saved + how to test (`/huddle-show-config`).
 
 ## Examples

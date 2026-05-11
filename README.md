@@ -11,8 +11,20 @@ Standalone — no dependency on caveman or any other skill.
 
 ## Install
 
+### Option A — as a Claude Code plugin (recommended)
+
+Plugins auto-register hooks and pre-allow internal Bash patterns, so you won't be prompted for permission on every `node` call inside the skill.
+
 ```bash
-git clone <this-repo> ~/code/huddle
+claude plugins install vladcioaba/huddle-skill
+```
+
+After install, restart Claude Code (or run `claude plugins list` to confirm).
+
+### Option B — as a bare skill (symlink)
+
+```bash
+git clone https://github.com/vladcioaba/huddle-skill.git ~/code/huddle
 ln -s ~/code/huddle ~/.claude/skills/huddle
 ```
 
@@ -22,7 +34,7 @@ Or symlink from wherever the source lives:
 ln -s /path/to/huddle ~/.claude/skills/huddle
 ```
 
-Restart Claude Code so the skill registry refreshes.
+Restart Claude Code so the skill registry refreshes. Note: bare-skill installs will prompt for Bash permission on each internal `node` call unless you add the patterns from `.claude-plugin/plugin.json` (`permissions.allow`) to your `~/.claude/settings.json` manually.
 
 ## First run
 
@@ -50,7 +62,7 @@ Detects installed editors, asks which to use, validates, writes `config.json`. I
 Before asking 2+ clarifying questions, main Claude consults:
 
 ```
-node ~/.claude/skills/huddle/lib/setup.js auto decide <question_count> <total_chars>
+node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js auto decide <question_count> <total_chars>
 → "editor" | "inline" | "disabled"
 ```
 

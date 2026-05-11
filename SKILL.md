@@ -29,7 +29,7 @@ Background-running clarification sub-agent. User answers a Q&A markdown file in 
 Before asking 2+ clarifying questions, decide where to ask:
 
 ```
-Run: node ~/.claude/skills/huddle/lib/setup.js auto decide <question_count> <total_chars>
+Run: node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js auto decide <question_count> <total_chars>
 Output: "editor" | "inline" | "disabled"
 ```
 
@@ -48,11 +48,11 @@ If `node` or config missing → fall back to inline.
 
 ## First-run setup
 
-If `node ~/.claude/skills/huddle/lib/setup.js status` returns `unconfigured`, run `/huddle-setup` flow before any huddle session:
+If `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js status` returns `unconfigured`, run `/huddle-setup` flow before any huddle session:
 
-1. `node ~/.claude/skills/huddle/lib/setup.js probe 4` → top 4 detected editors as JSON.
+1. `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js probe 4` → top 4 detected editors as JSON.
 2. Pass to `AskUserQuestion`. If user picks "Other" with custom command, validate via `setup.js validate "<cmd>"`.
-3. `node ~/.claude/skills/huddle/lib/setup.js save "<cmd>" "<label>" "<kind>" "<wait_method>"`.
+3. `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js save "<cmd>" "<label>" "<kind>" "<wait_method>"`.
 
 ## Config schema
 

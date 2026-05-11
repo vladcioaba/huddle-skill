@@ -1,0 +1,25 @@
+{
+  "name": "huddle",
+  "description": "Async clarification skill for Claude Code. Opens your preferred editor with a Q&A form when many clarifications are needed; sub-agent validates and merges results back to the main chat.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Vlad Cioabă",
+    "url": "https://github.com/vladcioaba"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/orchestrate.js:*)",
+      "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/setup.js:*)",
+      "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/template.js:*)",
+      "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/parser.js:*)",
+      "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/validator.js:*)",
+      "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/probe-editors.js:*)",
+      "Bash(node ~/.claude/skills/huddle/lib/orchestrate.js:*)",
+      "Bash(node ~/.claude/skills/huddle/lib/setup.js:*)",
+      "Bash(node ~/.claude/skills/huddle/lib/template.js:*)",
+      "Bash(node ~/.claude/skills/huddle/lib/parser.js:*)",
+      "Bash(node ~/.claude/skills/huddle/lib/validator.js:*)",
+      "Bash(node ~/.claude/skills/huddle/lib/probe-editors.js:*)"
+    ]
+  }
+}
