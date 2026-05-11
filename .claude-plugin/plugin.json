@@ -18,6 +18,18 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/hooks/on-user-prompt.js\"",
+            "timeout": 3,
+            "statusMessage": "Checking huddle queue..."
+          }
+        ]
+      }
     ]
   },
   "permissions": {

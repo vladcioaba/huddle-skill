@@ -11,6 +11,6 @@
     "probe": "node lib/probe-editors.js",
     "status": "node lib/setup.js status",
     "show": "node lib/setup.js show",
-    "test": "node test/smoke.js"
+    "test": "node --test test/smoke.test.js"
   }
 }

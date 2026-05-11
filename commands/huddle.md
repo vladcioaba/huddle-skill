@@ -100,6 +100,12 @@ Run a clarification session by opening the user's configured editor with a Q&A m
    - If `stop=true`: user explicitly aborted; halt the clarification flow.
    - Then continue the original task using the answers.
 
+5b. **Mark session merged** so cross-session reminders no longer flag it:
+    ```
+    node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/state.js merge "<session-id>"
+    ```
+    The session id is the bundle's `id` field.
+
 6. **Cleanup.** The orchestrator leaves the markdown file in tmp for inspection. Remove if not needed:
    ```bash
    rm /tmp/huddle-questions-<ts>.json
