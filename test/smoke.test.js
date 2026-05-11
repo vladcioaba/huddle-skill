@@ -369,6 +369,49 @@ describe("assumptions.js + diff.js (merge protocol)", () => {
   });
 });
 
+describe("setup.launchEditor — reliability guards", () => {
+  test("TTY guard: terminal editor refuses without TTY", async () => {
+    const { launchEditor } = await import("../lib/setup.js");
+    const tmp = mkdtempSync(join(tmpdir(), "huddle-tty-test-"));
+    const f = join(tmp, "probe.md");
+    writeFileSync(f, "x");
+    const res = await launchEditor("vim", f, { editorKind: "term" });
+    // Under `node --test`, stdin/stdout are not TTYs.
+    assert.equal(res.exitReason, "no_tty");
+    assert.match(res.error, /requires an interactive TTY/);
+  });
+
+  test("async spawn: exit listener resolves on child exit (GUI kind, /usr/bin/true)", async () => {
+    const { launchEditor } = await import("../lib/setup.js");
+    const tmp = mkdtempSync(join(tmpdir(), "huddle-async-test-"));
+    const f = join(tmp, "probe.md");
+    writeFileSync(f, "x");
+    // /usr/bin/true exits immediately with 0 → tests the exit listener path.
+    // GUI kind skips TTY guard.
+    const res = await launchEditor("/usr/bin/true", f, {
+      editorKind: "gui",
+      idleWarnMs: 0,
+      idleKillMs: 0,
+    });
+    assert.equal(res.exitReason, "editor_closed");
+    assert.equal(res.exitCode, 0);
+  });
+
+  test("spawn_error: nonexistent binary reports exitReason=spawn_error", async () => {
+    const { launchEditor } = await import("../lib/setup.js");
+    const tmp = mkdtempSync(join(tmpdir(), "huddle-err-test-"));
+    const f = join(tmp, "probe.md");
+    writeFileSync(f, "x");
+    const res = await launchEditor("/this/does/not/exist-xyz123", f, {
+      editorKind: "gui",
+      idleWarnMs: 0,
+      idleKillMs: 0,
+    });
+    assert.equal(res.exitReason, "spawn_error");
+    assert.match(res.error, /ENOENT|not found|no such/i);
+  });
+});
+
 describe("setup.installStatusline (idempotent + chain detect)", () => {
   // Isolate ~/.claude/settings.json by setting HOME to a temp dir before importing.
   // setup.js already imported above against real HOME — re-import after env override.
