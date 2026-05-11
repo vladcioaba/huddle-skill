@@ -369,6 +369,47 @@ describe("assumptions.js + diff.js (merge protocol)", () => {
   });
 });
 
+describe("setup.installStatusline (idempotent + chain detect)", () => {
+  // Isolate ~/.claude/settings.json by setting HOME to a temp dir before importing.
+  // setup.js already imported above against real HOME — re-import after env override.
+  test("install creates statusLine, chain auto-detects caveman", async () => {
+    const tmpHome = mkdtempSync(join(tmpdir(), "huddle-home-test-"));
+    const claudeDir = join(tmpHome, ".claude");
+    const fs = await import("node:fs");
+    fs.mkdirSync(claudeDir, { recursive: true });
+    fs.writeFileSync(
+      join(claudeDir, "settings.json"),
+      JSON.stringify(
+        {
+          statusLine: {
+            type: "command",
+            command: 'bash "/Users/x/.claude/hooks/caveman-statusline.sh"',
+          },
+        },
+        null,
+        2,
+      ),
+    );
+    const prevHome = process.env.HOME;
+    process.env.HOME = tmpHome;
+    // Re-import setup.js with new HOME so module-level constants pick up the path.
+    // node caches modules — bust with a query string.
+    const mod = await import(`../lib/setup.js?t=${Date.now()}`);
+    const result = mod.installStatusline();
+    assert.equal(result.installed, true);
+    assert.equal(result.chained, true); // detected caveman
+    assert.match(result.current, /HUDDLE_STATUSLINE_CHAIN_CAVEMAN=1/);
+    // Idempotent re-run
+    const second = mod.installStatusline();
+    assert.equal(second.skipped, true);
+    // Uninstall
+    const removed = mod.uninstallStatusline();
+    assert.equal(removed.uninstalled, true);
+    process.env.HOME = prevHome;
+    fs.rmSync(tmpHome, { recursive: true, force: true });
+  });
+});
+
 describe("setup.decideRoute", () => {
   // Avoid touching real config: directly probe DEFAULT_AUTO_TRIGGER thresholds.
   test("under threshold → inline", async () => {

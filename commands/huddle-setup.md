@@ -14,7 +14,14 @@ Run editor probe. Present detected editors via `AskUserQuestion`. Validate selec
 3. If JSON is empty array → tell user no supported editors found. Suggest installing one of: VSCode, Sublime, Neovim, Vim, Nano. Exit.
 4. After user picks, optionally run `${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js validate "<cmd>"` to dry-run timing. If `wait_method` returned is `mtime_poll` and the editor's metadata says `native`, override to `mtime_poll` in the save call.
 5. Run `node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js save "<cmd>" "<label>" "<kind>" "<wait_method>"`.
-6. Confirm to user: editor name + path to config.json. Mention `/huddle-set-editor` to change later.
+6. **Activate the [HUDDLE] statusline indicator** so the user can see when sessions are open or idle:
+   ```
+   node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/setup.js statusline install
+   ```
+   This patches `~/.claude/settings.json` `statusLine.command`. The installer auto-detects an existing caveman statusline and chains both (`[CAVEMAN] [HUDDLE]`); pass `--no-chain` to override. Backs up the prior settings file with a `.bak-pre-huddle-<ts>` suffix. Idempotent — skipping if already wired.
+7. Confirm to user: editor configured + statusline activated. Mention:
+   - `/huddle-set-editor` to change editor later.
+   - `/huddle-statusline-uninstall` (or `node …/lib/setup.js statusline uninstall`) to remove the indicator.
 
 ## Skip validation step?
 
