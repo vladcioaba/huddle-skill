@@ -20,6 +20,8 @@ import { getPanel, listPanels } from "../lib/panels/registry.js";
 const stateTmp = mkdtempSync(join(tmpdir(), "huddle-state-test-"));
 process.env.HUDDLE_STATE_DIR = stateTmp;
 const stateMod = await import("../lib/state.js");
+const assumptionsMod = await import("../lib/assumptions.js");
+const diffMod = await import("../lib/diff.js");
 
 describe("template + parser round trip", () => {
   const questions = [
@@ -282,6 +284,88 @@ describe("state.js CRUD", () => {
     assert.ok(n >= 1);
     assert.equal(stateMod.getSession("ghost").status, "stale");
     stateMod.removeSession("ghost");
+  });
+});
+
+describe("assumptions.js + diff.js (merge protocol)", () => {
+  const id = "merge-test";
+
+  test("initSnapshot writes assumptions.json", () => {
+    const snap = assumptionsMod.initSnapshot(id, [
+      { qid: "Q1", question: "JWT or sessions?", assumption: "JWT", confidence: "high" },
+      { qid: "Q2", question: "Daily or weekly?", assumption: "weekly", confidence: "medium" },
+      { qid: "Q3", question: "Rate limit?", assumption: "yes 10rpm", confidence: "low" },
+      { qid: "Q4", question: "Cost factor?", assumption: "12", confidence: "high" },
+    ]);
+    assert.equal(snap.items.length, 4);
+  });
+
+  test("appendDecision + touchPath stick to items", () => {
+    assumptionsMod.appendDecision(id, "Q2", "src/auth/keystore.ts:42 wrote weekly cron");
+    assumptionsMod.touchPath(id, "Q2", "src/auth/keystore.ts");
+    const item = assumptionsMod.findItem(assumptionsMod.getSnapshot(id), "Q2");
+    assert.ok(item.decisions_taken.includes("src/auth/keystore.ts:42 wrote weekly cron"));
+    assert.ok(item.code_paths_affected.includes("src/auth/keystore.ts"));
+  });
+
+  test("diff.compute classifies match / refinement / rework / unanswered", () => {
+    // Register session first (orchestrate.js does this on spawn).
+    stateMod.registerSession({ id, seq: 1, title: "Merge test", pid: process.pid, question_count: 4 });
+    // Simulate orchestrator bundle write.
+    stateMod.completeSession(id, {
+      id,
+      summary: "all_answered",
+      answers: [
+        { qid: "Q1", question: "JWT or sessions?", answer: "JWT" }, // match
+        { qid: "Q2", question: "Daily or weekly?", answer: "daily" }, // rework (acted)
+        { qid: "Q3", question: "Rate limit?", answer: "yes 10rpm, return 429 with Retry-After header" }, // refinement
+        // Q4 missing → unanswered
+      ],
+    });
+    const d = diffMod.compute(id);
+    const byQid = Object.fromEntries(d.items.map((i) => [i.qid, i.severity]));
+    assert.equal(byQid.Q1, "match");
+    assert.equal(byQid.Q2, "rework");
+    assert.equal(byQid.Q3, "refinement");
+    assert.equal(byQid.Q4, "unanswered");
+    assert.equal(d.counts.match, 1);
+    assert.equal(d.counts.refinement, 1);
+    assert.equal(d.counts.rework, 1);
+    assert.equal(d.counts.unanswered, 1);
+    assert.equal(d.recommend_action, "rollback_and_revisit");
+  });
+
+  test("blocking when decision contains irreversible marker", () => {
+    const bid = "block-test";
+    stateMod.registerSession({ id: bid, seq: 1, title: "block", pid: process.pid, question_count: 1 });
+    assumptionsMod.initSnapshot(bid, [
+      { qid: "Q1", question: "X?", assumption: "A", confidence: "high" },
+    ]);
+    assumptionsMod.appendDecision(bid, "Q1", "deployed v1.0.0 to production with A");
+    stateMod.completeSession(bid, {
+      id: bid,
+      summary: "all_answered",
+      answers: [{ qid: "Q1", question: "X?", answer: "B" }],
+    });
+    const d = diffMod.compute(bid);
+    assert.equal(d.items[0].severity, "blocking");
+    assert.equal(d.recommend_action, "rollback_and_revisit");
+  });
+
+  test("merge_clean when everything matches", () => {
+    const cid = "clean-test";
+    stateMod.registerSession({ id: cid, seq: 1, title: "clean", pid: process.pid, question_count: 1 });
+    assumptionsMod.initSnapshot(cid, [
+      { qid: "Q1", question: "X?", assumption: "A", confidence: "high" },
+    ]);
+    stateMod.completeSession(cid, {
+      id: cid,
+      summary: "all_answered",
+      answers: [{ qid: "Q1", question: "X?", answer: "a" }], // case-insensitive match
+    });
+    const d = diffMod.compute(cid);
+    assert.equal(d.items[0].severity, "match");
+    assert.equal(d.recommend_action, "merge_clean");
   });
 });
 

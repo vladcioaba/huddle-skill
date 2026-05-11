@@ -27,6 +27,30 @@ Run a clarification session by opening the user's configured editor with a Q&A m
    ]
    ```
 
+2b. **Snapshot your assumptions** so the diff at step 6 can reconcile them
+    against the user's actual answers. Write a JSON file alongside the
+    questions, then init it for the session id you're about to use:
+    ```json
+    [
+      { "qid": "Q1", "question": "Use JWT or sessions?", "assumption": "JWT", "confidence": "high", "code_paths_affected": [], "decisions_taken": [] },
+      { "qid": "Q2", "question": "Rotate keys daily or weekly?", "assumption": "weekly", "confidence": "medium", "code_paths_affected": [], "decisions_taken": [] }
+    ]
+    ```
+    ```bash
+    node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/assumptions.js init "<session-id>" /tmp/huddle-assumptions-<ts>.json
+    ```
+    Use the SAME session id you pass to `orchestrate.js --id`. If you skip
+    this step, /huddle-diff will fall back to "merge_clean" and you'll have
+    no way to detect rework caused by mismatched assumptions.
+
+    As you act on assumptions during the async wait (background editor
+    session in step 3b), append decisions:
+    ```bash
+    node ...assumptions.js append "<session-id>" Q2 "src/auth/keystore.ts:42 wrote weekly cron"
+    node ...assumptions.js touch  "<session-id>" Q2 "src/auth/keystore.ts"
+    ```
+    These get diffed against the user's answer when the bundle returns.
+
 3. **Run the orchestrator.** Two modes — pick based on context:
 
    **3a. Foreground (blocks until user closes editor).** Use when the
@@ -100,7 +124,19 @@ Run a clarification session by opening the user's configured editor with a Q&A m
    - If `stop=true`: user explicitly aborted; halt the clarification flow.
    - Then continue the original task using the answers.
 
-5b. **Mark session merged** so cross-session reminders no longer flag it:
+5b. **Compute the assumption diff** (if you snapshotted in step 2b):
+    ```
+    node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/diff.js compute "<session-id>"
+    ```
+    Read the result. `recommend_action`:
+    - `merge_clean` — assumptions hold. Continue without rework.
+    - `rollback_and_revisit` — surface each rework/blocking item to the user
+      with paths_affected + decisions_to_revisit. Ask whether to roll back
+      or proceed.
+    - `ask_user` — some Qs went unanswered. Decide with the user.
+    See `/huddle-diff` for the rendering spec.
+
+5c. **Mark session merged** so cross-session reminders no longer flag it:
     ```
     node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/state.js merge "<session-id>"
     ```

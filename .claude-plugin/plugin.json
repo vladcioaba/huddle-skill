@@ -41,13 +41,17 @@
       "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/validator.js:*)",
       "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/probe-editors.js:*)",
       "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/state.js:*)",
+      "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/assumptions.js:*)",
+      "Bash(node ${CLAUDE_PLUGIN_ROOT}/lib/diff.js:*)",
       "Bash(node ~/.claude/skills/huddle/lib/orchestrate.js:*)",
       "Bash(node ~/.claude/skills/huddle/lib/setup.js:*)",
       "Bash(node ~/.claude/skills/huddle/lib/template.js:*)",
       "Bash(node ~/.claude/skills/huddle/lib/parser.js:*)",
       "Bash(node ~/.claude/skills/huddle/lib/validator.js:*)",
       "Bash(node ~/.claude/skills/huddle/lib/probe-editors.js:*)",
-      "Bash(node ~/.claude/skills/huddle/lib/state.js:*)"
+      "Bash(node ~/.claude/skills/huddle/lib/state.js:*)",
+      "Bash(node ~/.claude/skills/huddle/lib/assumptions.js:*)",
+      "Bash(node ~/.claude/skills/huddle/lib/diff.js:*)"
     ]
   }
 }
