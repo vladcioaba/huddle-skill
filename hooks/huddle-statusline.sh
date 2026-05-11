@@ -48,26 +48,17 @@ CONFIG="$HOME/.claude/skills/huddle/config.json"
 [ ! -f "$CONFIG" ] && [ ! -f "$INDEX" ] && exit 0
 
 ACTIVE=0
-DONE_UNMERGED=0
 if [ -f "$INDEX" ] && [ ! -L "$INDEX" ]; then
-  # Count statuses without invoking node (statusline is called often).
-  # grep -c exits 1 when no matches, but always prints a single integer — capture that, fall back to 0.
-  # Count occurrences, not lines (handles compact and pretty JSON).
+  # Count occurrences (handles compact and pretty JSON).
   ACTIVE=$(grep -oE '"status":[[:space:]]*"waiting_user"' "$INDEX" 2>/dev/null | wc -l | tr -d ' ')
   ACTIVE=${ACTIVE:-0}
-  DONE_TOTAL=$(grep -oE '"status":[[:space:]]*"done"' "$INDEX" 2>/dev/null | wc -l | tr -d ' ')
-  DONE_TOTAL=${DONE_TOTAL:-0}
-  MERGED=$(grep -oE '"merged_at"' "$INDEX" 2>/dev/null | wc -l | tr -d ' ')
-  MERGED=${MERGED:-0}
-  DONE_UNMERGED=$((DONE_TOTAL - MERGED))
-  [ "$DONE_UNMERGED" -lt 0 ] && DONE_UNMERGED=0
 fi
 
-# Color: blue base (39), yellow if any active (220), green if any unmerged done (40).
+# Color: blue base (39) when idle, yellow (220) with count when sessions are live.
+# No persistent "done" badge — completed bundles surface in chat once and don't need
+# a lingering statusline indicator.
 if [ "${ACTIVE:-0}" -gt 0 ]; then
   printf '\033[38;5;220m[HUDDLE:%d]\033[0m' "$ACTIVE"
-elif [ "${DONE_UNMERGED:-0}" -gt 0 ]; then
-  printf '\033[38;5;40m[HUDDLE:done]\033[0m'
 else
   printf '\033[38;5;39m[HUDDLE]\033[0m'
 fi

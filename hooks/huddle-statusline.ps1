@@ -29,25 +29,21 @@ if (-not (Test-Path $configPath -PathType Leaf) -and -not (Test-Path $indexPath 
 }
 
 $active = 0
-$doneUnmerged = 0
 if (Test-Path $indexPath -PathType Leaf) {
   try {
     $idx = Get-Content $indexPath -Raw -ErrorAction Stop | ConvertFrom-Json
     foreach ($s in $idx.sessions) {
       if ($s.status -eq "waiting_user") { $active++ }
-      elseif ($s.status -eq "done" -and -not $s.merged_at) { $doneUnmerged++ }
     }
   } catch {
     # Malformed index → skip count, still emit base badge.
   }
 }
 
-# ANSI color via Write-Host -ForegroundColor (limited to base 16) — use raw escapes for 256-color match with bash script.
+# ANSI 256-color via raw escapes (matches bash variant).
 $ESC = [char]27
 if ($active -gt 0) {
   Write-Host -NoNewline "$ESC[38;5;220m[HUDDLE:$active]$ESC[0m"
-} elseif ($doneUnmerged -gt 0) {
-  Write-Host -NoNewline "$ESC[38;5;40m[HUDDLE:done]$ESC[0m"
 } else {
   Write-Host -NoNewline "$ESC[38;5;39m[HUDDLE]$ESC[0m"
 }

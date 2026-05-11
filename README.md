@@ -62,9 +62,8 @@ Detects installed editors, asks which to use, validates, writes `config.json`. I
 Show `[HUDDLE]` in the Claude Code statusline (like the `[CAVEMAN]` badge) so you know the skill is active and how many sessions are open.
 
 States:
-- `[HUDDLE]` (blue) — skill configured, no active or pending bundles
-- `[HUDDLE:N]` (yellow) — N sessions are open and waiting for the user to fill the form
-- `[HUDDLE:done]` (green) — one or more completed bundles haven't been merged back into the main thread yet
+- `[HUDDLE]` (blue) — skill configured, idle (no live forms)
+- `[HUDDLE:N]` (yellow) — N forms open and waiting for the user to fill
 
 Add the following to `~/.claude/settings.json`:
 
