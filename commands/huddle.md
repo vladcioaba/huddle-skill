@@ -27,11 +27,36 @@ Run a clarification session by opening the user's configured editor with a Q&A m
    ]
    ```
 
-3. **Run the orchestrator.** Single Bash call:
+3. **Run the orchestrator.** Two modes — pick based on context:
+
+   **3a. Foreground (blocks until user closes editor).** Use when the
+   user is waiting for these answers right now and the conversation
+   can pause.
    ```bash
-   node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/orchestrate.js --questions /tmp/huddle-questions-<ts>.json
+   node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/orchestrate.js \
+     --questions /tmp/huddle-questions-<ts>.json \
+     --title "Clarify <topic>" \
+     --out /tmp/huddle-bundle-<ts>.json
    ```
-   Output is a JSON bundle on stdout.
+   Output is the JSON bundle on stdout AND mirrored to the `--out` file.
+
+   **3b. Background (unblocks main chat).** Use when the user wants to
+   keep chatting while filling the form. Pass `run_in_background: true`
+   to the Bash tool. You receive a task id back immediately; the
+   completion notification will fire with the bundle in the `--out`
+   file. List active sessions any time with `/huddle-list`.
+   ```bash
+   node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/orchestrate.js \
+     --questions /tmp/huddle-questions-<ts>.json \
+     --title "Clarify <topic>" \
+     --out /tmp/huddle-bundle-<ts>.json
+   # (use Bash run_in_background: true)
+   ```
+
+   The orchestrator auto-registers itself in
+   `~/.claude/state/huddle/index.json` with status `waiting_user`,
+   then transitions to `done` on completion or `stopped` if the user
+   runs `/huddle-stop <id>`.
 
 4. **Parse the bundle.** Save the orchestrator's JSON output to a file
    (e.g. `/tmp/huddle-bundle-<ts>.json`) so the runner agent can Read it.
@@ -97,7 +122,8 @@ node ${CLAUDE_PLUGIN_ROOT:-$HOME/.claude/skills/huddle}/lib/orchestrate.js --que
 
 ## Notes
 
-- The orchestrator is synchronous — it blocks until the user closes the editor. Async (run-in-background) is planned for a future version.
-- Concurrent `/huddle` sessions in the same chat are not yet supported (planned).
+- Run-in-background (step 3b) is the recommended mode for long forms — the user can keep chatting while the editor is open. The completion notification carries the bundle file path.
+- Concurrent `/huddle` sessions ARE supported: each gets a unique id, all live in `~/.claude/state/huddle/index.json`, all can run in parallel. Use `/huddle-list` to see them, `/huddle-stop <id>` to cancel one.
 - If `huddle not configured` error: tell user to run `/huddle-setup` first.
-- The orchestrator does NOT call any sub-agent yet (Haiku integration planned). Today it's pure shell pipeline.
+- Step 4b (the runner) is optional but recommended for forms with > 3 questions — it catches ambiguous answers and proposes targeted follow-ups before you act on the bundle.
+- Cleanup of stale sessions (orphaned by terminal close, crash): `node …/lib/state.js prune` marks entries with dead spawning PIDs as `stale`. Safe to run anytime.
